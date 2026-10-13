@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>给亲爱的姐姐</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    display:grid;place-items:center;overflow:hidden;
+    background:radial-gradient(circle at 50% 35%,#2b1055,#0a0312 70%);
+    color:#fff;text-align:center;padding:24px;
+    font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    user-select:none;-webkit-tap-highlight-color:transparent;
+    transition:background 1.2s;
+  }
+  body.yes{background:radial-gradient(circle at 50% 35%,#7a2b4d,#1a0510 70%)}
+
+  /* ---------- 第一页：入场过渡 ---------- */
+  #line{
+    font-size:clamp(19px,5.5vw,32px);line-height:1.9;letter-spacing:.08em;
+    min-height:2em;text-shadow:0 0 30px rgba(255,140,190,.5);
+    max-width:800px;
+    /* 初始状态：模糊 + 下沉 + 透明 */
+    opacity:0;
+    transform:translateY(22px) scale(.96);
+    filter:blur(12px);
+    transition:opacity .9s ease, transform .9s cubic-bezier(.22,1,.36,1), filter .9s ease;
+  }
+  body.ready #line{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}
+
+  #tip{
+    position:fixed;bottom:7%;left:0;right:0;font-size:13px;
+    color:rgba(255,255,255,.35);animation:fl 2.4s ease-in-out infinite;
+    transition:opacity .6s ease;
+  }
+  @keyframes fl{0%,100%{opacity:.3;transform:translateY(0)}50%{opacity:.75;transform:translateY(-5px)}}
+
+  /* ---------- 最后一页：卡片弹入 ---------- */
+  #card{
+    display:flex;flex-direction:column;align-items:center;
+    animation:popIn .85s cubic-bezier(.22,1.2,.36,1) both;
+  }
+  @keyframes popIn{
+    0%  {opacity:0;transform:translateY(28px) scale(.9)}
+    60% {opacity:1;transform:translateY(-6px) scale(1.03)}
+    100%{opacity:1;transform:translateY(0) scale(1)}
+  }
+
+  #ask{font-size:clamp(20px,6vw,34px);line-height:1.8;letter-spacing:.06em}
+  #ask.cheer{
+    animation:cheerPop .9s cubic-bezier(.34,1.56,.64,1) both;
+    text-shadow:0 0 26px rgba(255,130,180,.95), 0 0 70px rgba(255,45,85,.65);
+  }
+  @keyframes cheerPop{
+    0%  {transform:scale(.7);opacity:.2}
+    55% {transform:scale(1.14)}
+    100%{transform:scale(1);opacity:1}
+  }
+
+  #btns{display:flex;gap:18px;justify-content:center;margin-top:38px;
+        opacity:0;animation:fadeIn .8s ease .5s forwards}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+
+  #sub{
+    margin-top:26px;font-size:clamp(14px,3.8vw,18px);letter-spacing:.14em;
+    color:rgba(255,255,255,.82);
+    opacity:0;transform:translateY(12px);
+    transition:opacity .9s ease,transform .9s cubic-bezier(.22,1,.36,1);
+  }
+  #sub.show{opacity:1;transform:translateY(0)}
+
+  button{
+    font-family:inherit;font-size:17px;padding:13px 32px;border-radius:999px;
+    border:none;cursor:pointer;transition:transform .35s cubic-bezier(.34,1.56,.64,1),opacity .35s;
+  }
+  #yes{background:linear-gradient(135deg,#ff5f8f,#ff2d55);color:#fff;
+       box-shadow:0 10px 34px rgba(255,45,85,.45);
+       animation:breathe 2.2s ease-in-out 1.4s infinite}
+  @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+  #yes:active{transform:scale(.93)}
+  #no{background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);
+      border:1px solid rgba(255,255,255,.18)}
+
+  /* ---------- 庆祝画布 ---------- */
+  #fx{position:fixed;inset:0;pointer-events:none;z-index:50}
+
+  /* 爱心雨 */
+  .h{position:fixed;top:-8vh;pointer-events:none;animation:fall linear forwards;z-index:55}
+  @keyframes fall{to{transform:translateY(118vh) rotate(400deg);opacity:0}}
+
+  /* 点击屏幕掉落的小爱心 */
+  .click-heart{position:fixed;pointer-events:none;animation:floatUp 1s ease-out forwards;z-index:60}
+  @keyframes floatUp{
+    0%{opacity:1;transform:translate(0,0) scale(1)}
+    100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(.5)}
+  }
+
+  /* 音乐开关按钮 */
+  #musicToggle{
+    position:fixed;top:16px;right:16px;z-index:100;
+    width:44px;height:44px;border-radius:50%;
+    background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
+    color:#fff;font-size:20px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:background .3s;-webkit-tap-highlight-color:transparent;
+  }
+  #musicToggle:active{background:rgba(255,255,255,.25)}
+
+  /* 针对平板和电脑的适配 */
+  @media (min-width:768px){
+    body{padding:40px}
+    #line{font-size:36px;min-height:3em}
+    #tip{bottom:10%;font-size:15px}
+    button{font-size:19px;padding:15px 40px}
+  }
+</style>
+</head>
+<body>
+
+  <div id="musicToggle">🎵</div>
+  <canvas id="fx"></canvas>
+
+  <audio id="bgm1" loop preload="auto" src="music1.mp3"></audio>
+  <audio id="bgm2" loop preload="auto" src="music2.mp3"></audio>
+
+  <div id="line"><span id="lineText"></span></div>
+  <div id="tip">轻触屏幕</div>
+
+<script>
+/* =========================================================
+   1. 文案
+   ========================================================= */
+const now = new Date();
+const dateStr = `${now.getMonth() + 1}月${now.getDate()}日`;
+
+const lines = [
+  `今天是 ${dateStr}，有一件重要的事想跟姐姐说`,
+  "谢谢你出现在我的生活里",
+  "谢谢你听我讲那些无聊的小事",
+  "谢谢你让我觉得，被人惦记是这么暖的事",
+  "还记得我们第一次聊到凌晨，分享着彼此的鸡毛蒜皮",
+  "但不知不觉间，这成了我每天最期待的时刻",
+  "你让我每天、每时、每刻，都在想你",
+  "从每天的早安到晚安，我们的聊天框装满了我所有的快乐",
+  "你是我每天睁开眼第一个想找的人",
+  "也是我每天晚上舍不得说晚安的人",
+  "我不想只做你的聊天搭子，我想做你生活里的一部分",
+  "所以……我想问问——"
+];
+
+const el       = document.getElementById('line');
+const lineText = document.getElementById('lineText');
+const tip      = document.getElementById('tip');
+
+/* =========================================================
+   2. 音频与音乐开关
+   ========================================================= */
+const bgm1 = document.getElementById('bgm1');
+const bgm2 = document.getElementById('bgm2');
+const musicBtn = document.getElementById('musicToggle');
+let bgmStarted = false;
+let isPlaying  = false;
+
+musicBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  if (isPlaying) {
+    bgm1.pause(); bgm2.pause();
+    musicBtn.textContent = '🔇';
+  } else {
+    if (document.body.classList.contains('yes')) {
+      bgm2.play().catch(() => {});
+    } else {
+      bgm1.play().catch(() => {});
+    }
+    musicBtn.textContent = '🎵';
+  }
+  isPlaying = !isPlaying;
+});
+
+/* =========================================================
+   3. 打字机
+   ========================================================= */
+function type(text, done){
+  el.style.opacity = 0;
+  setTimeout(() => {
+    lineText.textContent = '';
+    el.style.opacity = 1;
+    let i = 0;
+    (function step(){
+      lineText.textContent = text.slice(0, ++i);
+      if (i < text.length) setTimeout(step, 90);
+      else done && setTimeout(done, 480);
+    })();
+  }, 380);
+}
+
+/* =========================================================
+   4. 点击屏幕炸开小爱心
+   ========================================================= */
+function createClickHearts(x, y){
+  const emojis = ['❤️','💗','✨','🌸','💖'];
+  for (let i = 0; i < 5; i++){
+    const h = document.createElement('div');
+    h.className = 'click-heart';
+    h.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    h.style.left = x + 'px';
+    h.style.top  = y + 'px';
+    h.style.fontSize = (14 + Math.random() * 12) + 'px';
+    h.style.setProperty('--tx', ((Math.random() - .5) * 150) + 'px');
+    h.style.setProperty('--ty', ((Math.random() - .5) * 150 - 50) + 'px');
+    document.body.appendChild(h);
+    setTimeout(() => h.remove(), 1000);
+  }
+}
+document.body.addEventListener('mousedown', e => {
+  if (e.target.closest('button') || e.target.closest('#musicToggle')) return;
+  createClickHearts(e.clientX, e.clientY);
+});
+document.body.addEventListener('touchstart', e => {
+  if (e.target.closest('button') || e.target.closest('#musicToggle')) return;
+  const t = e.touches[0];
+  createClickHearts(t.clientX, t.clientY);
+}, {passive:true});
+
+/* =========================================================
+   5. 逐句推进
+   ========================================================= */
+let idx = 0;
+let busy = false;
+
+function next(){
+  if (busy) return;
+
+  if (!bgmStarted){
+  bgm1.volume = 0.4;
+  const p = bgm1.play();
+  if (p !== undefined) {
+    p.then(() => {
+      bgmStarted = true;
+      isPlaying  = true;
+      musicBtn.textContent = '🎵';
+    }).catch(() => {
+    });
+  } else {
+    bgmStarted = true;
+    isPlaying  = true;
+    musicBtn.textContent = '🎵';
+  }
+}
+
+  if (idx < lines.length){
+    busy = true;
+    tip.style.display = 'none';
+    type(lines[idx++], () => {
+      busy = false;
+      tip.style.display = 'block';
+    });
+  } else {
+    busy = true;
+    ask();
+  }
+}
+document.body.addEventListener('click', next);
+
+/* 页面入场：先让第一页淡入，再开始打字 */
+function startIntro(){
+  requestAnimationFrame(() => document.body.classList.add('ready'));
+}
+if (document.readyState === 'complete') startIntro();
+else window.addEventListener('load', startIntro);
+
+/* =========================================================
+   6. 最后一页：过渡 + 问题
+   ========================================================= */
+function ask(){
+  document.body.removeEventListener('click', next);
+  if (tip) tip.remove();
+
+  /* 当前文字：模糊上浮淡出 */
+  el.style.opacity   = '0';
+  el.style.transform = 'translateY(-18px) scale(.96)';
+  el.style.filter    = 'blur(10px)';
+
+  setTimeout(() => {
+    el.outerHTML = `
+      <div id="card">
+        <div id="ask">爱我一辈子，好不好？</div>
+        <div id="btns">
+          <button id="yes">好</button>
+          <button id="no">再想想</button>
+        </div>
+        <div id="sub">往后余生，都是你 ❤️</div>
+      </div>`;
+    bindAnswer();
+  }, 560);
+}
+
+function bindAnswer(){
+  const no  = document.getElementById('no');
+  const yes = document.getElementById('yes');
+
+  const soft = [
+    "再想想", "真的吗", "别这样嘛", "我会难过的", "QAQ",
+    "你点不到我哦", "求你了，点左边吧", "……好吧", "其实我不介意的"
+  ];
+  let k = 0;
+
+  no.addEventListener('click', e => {
+    e.stopPropagation();
+    if (k < soft.length){
+      no.textContent = soft[k++];
+      const s = Math.max(.45, 1 - k * 0.1);
+      no.style.transform = `scale(${s})`;
+      if (k === 3) yes.style.transform = 'scale(1.18)';
+      if (k === 6) yes.style.transform = 'scale(1.35)';
+    } else {
+      no.style.opacity = 0;
+      setTimeout(() => no.remove(), 350);
+    }
+  });
+
+  no.addEventListener('mouseenter', () => {
+    if (k >= 2){
+      const x = (Math.random() - .5) * 250;
+      const y = (Math.random() - .5) * 160;
+      no.style.transform = `translate(${x}px,${y}px) scale(${Math.max(.45, 1 - k * 0.1)})`;
+    }
+  });
+
+  yes.addEventListener('click', e => {
+    e.stopPropagation();
+
+    /* 切第二首音乐 */
+    bgm1.pause();
+    bgm2.pause();
+    bgm2.load();
+    bgm2.volume = 0.5;
+    bgm2.play().catch(() => {});
+    isPlaying = true;
+    musicBtn.textContent = '🎵';
+
+    document.body.classList.add('yes');
+
+    const askEl = document.getElementById('ask');
+    askEl.textContent = '谢谢姐姐，爱你哟 ✨';
+    askEl.classList.add('cheer');
+
+    document.getElementById('btns').style.display = 'none';
+    document.getElementById('sub').classList.add('show');
+
+    celebrate();   /* 庆祝开始 */
+  });
+}
+
+/* =========================================================
+   7. 庆祝：彩带 + 烟花（Canvas）
+   ========================================================= */
+const cvs = document.getElementById('fx');
+const ctx = cvs.getContext('2d');
+let DPR = 1;
+
+function resize(){
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  cvs.width  = Math.floor(innerWidth  * DPR);
+  cvs.height = Math.floor(innerHeight * DPR);
+  cvs.style.width  = innerWidth  + 'px';
+  cvs.style.height = innerHeight + 'px';
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+resize();
+window.addEventListener('resize', resize);
+
+const COLORS = ['#ff5f8f','#ff2d55','#ffd166','#7be0ff','#c084fc','#ffffff','#ff9ecd','#a5f3a0'];
+const pick = a => a[Math.floor(Math.random() * a.length)];
+
+let parts  = [];
+let rafId  = null;
+let lastT  = 0;
+
+function ensureLoop(){
+  if (rafId === null){
+    lastT = 0;
+    rafId = requestAnimationFrame(loop);
+  }
+}
+
+function loop(t){
+  const dt = Math.min((t - (lastT || t)) / 1000, 0.05);
+  lastT = t;
+
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.clearRect(0, 0, innerWidth, innerHeight);
+
+  for (let i = parts.length - 1; i >= 0; i--){
+    const p = parts[i];
+    p.life += dt;
+
+    if (p.type === 'confetti'){
+      p.vy += 95 * dt;
+      p.vx *= Math.pow(0.55, dt);
+      p.sway += dt * 4;
+      p.x += (p.vx + Math.sin(p.sway) * 34) * dt;
+      p.y += p.vy * dt;
+      p.rot += p.vr * dt;
+
+      if (p.y > innerHeight + 80 || p.life > p.maxLife){ parts.splice(i, 1); continue; }
+
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.globalAlpha = Math.max(0, 1 - p.life / p.maxLife);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+
+    } else { /* spark 烟花粒子 */
+      const drag = Math.exp(-1.9 * dt);
+      p.vx *= drag;
+      p.vy *= drag;
+      p.vy += 72 * dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+
+      if (p.life > p.maxLife){ parts.splice(i, 1); continue; }
+
+      const a = Math.max(0, 1 - p.life / p.maxLife);
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = a;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * (0.35 + a * 0.75), 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  if (parts.length) rafId = requestAnimationFrame(loop);
+  else { rafId = null; lastT = 0; }
+}
+
+/* 彩带 */
+function confettiBurst(n){
+  for (let i = 0; i < n; i++){
+    parts.push({
+      type: 'confetti',
+      x: Math.random() * innerWidth,
+      y: -30 - Math.random() * innerHeight * 0.7,
+      vx: (Math.random() - .5) * 90,
+      vy: 40 + Math.random() * 130,
+      w: 6 + Math.random() * 8,
+      h: 8 + Math.random() * 12,
+      rot: Math.random() * Math.PI * 2,
+      vr: (Math.random() - .5) * 9,
+      sway: Math.random() * Math.PI * 2,
+      color: pick(COLORS),
+      life: 0,
+      maxLife: 5.5 + Math.random() * 3
+    });
+  }
+  ensureLoop();
+}
+
+/* 烟花 */
+function firework(x, y, color){
+  const n = 42 + Math.floor(Math.random() * 30);
+  for (let i = 0; i < n; i++){
+    const a  = (Math.PI * 2 * i) / n + Math.random() * 0.25;
+    const sp = 80 + Math.random() * 190;
+    parts.push({
+      type: 'spark',
+      x, y,
+      vx: Math.cos(a) * sp,
+      vy: Math.sin(a) * sp,
+      size: 1.4 + Math.random() * 2,
+      color,
+      life: 0,
+      maxLife: 0.85 + Math.random() * 0.75
+    });
+  }
+  ensureLoop();
+}
+
+/* 爱心雨（DOM） */
+function rain(){
+  setInterval(() => {
+    const s = document.createElement('div');
+    s.className = 'h';
+    s.textContent = ['❤️','💗','💖','✨','🌸'][Math.floor(Math.random() * 5)];
+    s.style.left = Math.random() * 100 + 'vw';
+    s.style.fontSize = (14 + Math.random() * 22) + 'px';
+    s.style.animationDuration = (3 + Math.random() * 3) + 's';
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 6500);
+  }, 240);
+}
+
+/* 庆祝总调度 */
+let celebrated = false;
+function celebrate(){
+  if (celebrated) return;
+  celebrated = true;
+
+  confettiBurst(180);                       /* 开场彩带 */
+  rain();                                   /* 爱心雨 */
+
+  /* 烟花：连放 25 发 */
+  let fw = 0;
+  const fwTimer = setInterval(() => {
+    firework(
+      innerWidth  * (0.12 + Math.random() * 0.76),
+      innerHeight * (0.12 + Math.random() * 0.42),
+      pick(COLORS)
+    );
+    if (++fw > 25) clearInterval(fwTimer);
+  }, 680);
+
+  /* 持续飘落的彩带 */
+  const cfTimer = setInterval(() => confettiBurst(14), 950);
+  setTimeout(() => clearInterval(cfTimer), 20000);
+}
+</script>
+</body>
+</html>
